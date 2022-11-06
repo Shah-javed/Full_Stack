@@ -1,0 +1,24 @@
+
+mkdir project directory && cd dir
+mkdir estate
+
+//Create VirtuaL enVIRONMENTS:
+
+py -m venv <env1>
+env1\script\bin\activte
+Activate kro fir
+
+
+python -m pip install --upgrade pip
+
+
+//REpo banao:
+create--> Reponame 
+
+
+initialise kro git
+
+git init
+git remote add origin master <url>
+git remote -v
+
