@@ -1,0 +1,1066 @@
+﻿CH-1
+pip install django-extensions
+
+Ch-2
+In this chapter, we will cover how to do the following:
+• Choosing developmental tools
+• Starting a project
+• Creating a virtual environment
+• Project configuration
+• Using basic database settings
+• Preparing PostgreSQL for Heroku
+
+
+Crete Virtaul-Env:
+python -m venv virtual_env
+virtual_env/Scripts/activate
+pip install -r requirements.txt
+
+
+
+###
+
+An alternative method to creating a virtual environment
+
+pip install virtualenv
+PS C:\Projects\Packt\Repo\becoming_a_django_entdev>
+virtualenv virtual_env
+
+# requirements.txt
+django~=4.0
+django-extensions
+django-heroku
+dj-database-url
+gunicorn
+python-dotenv
+pydotplus
+psycopg2
+psycopg2-binary==2.8.6
+whitenoise
+secret-key-generator
+#########
+Django ==4.1.3
+djangorestframework ==3.14.0
+django-environ==0.7.0
+django-filter==21.1
+django-autoslug==1.9.8
+django-countries==7.2.1
+Pillow==8.3.2
+django-phonenumber-field==7.0.0
+phonenumbers==8.12.57
+psycopg2-binary==2.9.1
+flake8==3.9.2
+black==22.10.0
+isort==5.9.3
+# Django==3.2.7
+# djangorestframework==3.12.4
+# djoser==2.1.0
+# djangorestframework-simplejwt==5.2.2
+# PyJWT==2.1.0
+# pytest-django==4.4.0
+# pytest-factoryboy==2.1.0
+# Faker==8.9.1
+# pytest-cov==2.12.1
+# redis==3.5.3
+# celery==4.4.7
+# flower==0.9.7
+# django-celery-email==3.0.0
+# argh==0.26.2
+# PyYAML==5.3.1
+# watchdog==1.0.2
+
+
+Settings.py
+
+import os
+import posixpath
+import django_heroku
+import dj_database_url
+import dotenv
+
+###from pathlib import Path {alinstaed of posixpath and os}
+
+settings.py
+django_heroku.settings(locals())
+
+ALLOWED_HOSTS = [
+    '*',//  not best practice
+'your-domain.com',
+'www.your-domain.com',
+'dev.your-domain.com',
+'staging.your-domain.com',
+'becoming-an-entdev.herokuapp.com',
+'mighty-sea-09431.herokuapp.com',
+'pure-atoll-19670.herokuapp.com',
+]
+
+/becoming_a_django_entdev/settings.py
+...
+handle all primary keys of objects.
+Without this setting, we would otherwise have to add a field called 
+id = models.AutoField(primary_key=True) 
+to every model class that we created.
+
+
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
+
+
+Local variables
+
+Run the following command from your project's root directory, where your
+manage.py file exists:
+(virtual_env) PS > echo 'DATABASE_URL=sqlite:///
+db.sqlite3' > .env
+
+Settings.py
+
+import dotenv
+BASE_DIR = os.path.dirname(
+os.path.dirname(os.path.abspath(__file__))
+)
+dotenv_file = os.path.join(BASE_DIR, ".env")
+if os.path.isfile(dotenv_file):
+dotenv.load_dotenv(dotenv_file)
+SECRET_KEY = os.getenv('SECRET_KEY')
+
+.env file edit like this
+...
+SECRET_KEY = my_randomly_generated_key
+
+
+
+Remote variables
+
+(virtual_env) PS > heroku login
+(virtual_env) PS > heroku config:add SECRET_KEY=my_randomly_
+generated_key --app becoming-an-entdev
+(virtual_env) PS > heroku config:add SECRET_KEY=my_randomly_
+generated_key --app mighty-sea-09431
+(virtual_env) PS > heroku config:add SECRET_KEY=my_randomly_
+generated_key --app pure-atoll-19670
+
+
+Next, let's create a Procfile, short for process file.
+procfile located in the root of a repository,
+
+Heroku uses the concept of containers
+procfile located in the root of a repository,
+If you wanted to use an asynchronous
+server gateway interface, you would specify the location of the asgi.py file instead.
+
+# ./Procfile in Root of Repository
+web: gunicorn becoming_a_django_entdev.wsgi
+
+# ./Procfile in Root of Repository
+web: sh -c 'cd ./becoming_a_django_entdev/ && exec gunicorn
+becoming_a_django_entdev.wsgi --log-file -'
+
+
+
+Django static files
+Heroku uses a package called whitenoise, installed
+in the requirements.txt file, to work with your static files. These are files such as a
+.css, .js, image, or font files that are found in any Django app's static folder.
+
+Follow these steps to configure your project to work with the whitenoise package:
+
+Add the following line to the MIDDLEWARE setting:
+
+MIDDLEWARE=[
+'whitenoise.middleware.WhiteNoiseMiddleware',
+]
+
+Heroku will also need us to add a variable called STATICFILES_STORAGE.
+settings.py
+
+STATICFILES_STORAGE = 'whitenoise.storage.
+CompressedManifestStaticFilesStorage'
+STATIC_URL = '/staticfiles/'
+STATIC_ROOT = posixpath.join(
+*(BASE_DIR.split(os.path.sep) + ['staticfiles'])
+)
+
+
+
+In Django, when a project is run locally, with DEBUG = False, static files
+will fail to load even if they appear in your remote environments. The reason
+why this happens is that the server is usually configured to handle how it serves
+up your static files versus Django controlling that, similar to how Heroku uses
+the whitenoise package to serve up its static files. The whitenoise
+package is also used to serve up static files locally when DEBUG is set to
+False.
+
+
+Django media files:
+Similar to the static files, media file paths need to be configured in order to work with
+the whitenoise package and Heroku.
+Media files are considered anything that the
+user uploads to your system, such as an image, audio file, or another document. The two
+variables, MEDIA_URL and MEDIA_ROOT, are defined in Django by default as
+
+
+settings.py
+MEDIA_URL = '/media/'
+MEDIA_ROOT = posixpath.join(
+*(BASE_DIR.split(os.path.sep) ['media'])
+)
+
+
+
+Creating a .gitignore file:
+Create a file called .gitignore in the root of your repository, where your .git folder
+resides. Then, add the items shown here. They will serve as your ignore patterns:
+
+# ./.gitignore in Root of Repository
+# Keep Rule
+!gitkeep.txt
+# Django #
+db.sqlite3
+*.log
+*.pyc
+__pycache__
+# Media – User Generated Content #
+media/
+80 Project Configuration
+# Environments #
+.env
+virtual_env/
+# Visual Studio and Visual Studio Code #
+*.suo
+*.pyproj
+*.pyproj.user
+*.history
+.vs/
+obj/
+# Heroku
+staticfiles/
+
+The!gitkeep.txt pattern is commonly used in situations where an empty
+folder is needed to live in a repository, such as the media folder. Git will automatically
+ignore a folder if nothing exists inside of it; if we place a gitkeep.txt file inside that
+media folder, we can get around this dilemma when ignoring everything within that
+folder. The media folder is used for user-generated content but we do not want to track
+files that get placed inside of it. Some of these empty folders are actually needed to prevent
+errors during runtime, such as when uploading an image to the system and the media
+folder does not exist yet. Sometimes, this can prevent a fresh clone of a repository from
+running properly for the first time altogether, depending on the existence of that folder.
+
+
+
+Creating a Django app
+
+In Django, the entire set of files from the folder where your manage.py file is located is
+considered your project.
+
+
+python manage.py startapp chapter_2
+
+INSTALLED_APPS = [
+...
+'django_extensions',
+'becoming_a_django_entdev.chapter_2',
+]
+DEFAULT_AUTO_FIELD'= 'django.db.models.AutoField'
+
+
+Sometimes, it is necessary to tell Django where to look for your app in your
+directory tree. In the apps.py file of the app you just created,
+
+# /becoming_a_django_entdev/chapter_2/apps.py
+from django.apps import AppConfig
+class chapter_2Config(AppConfig):
+name= 'becoming_a_django_entdev.chapter_2'
+
+
+The project's file structure should now look like the following tree, with the highlighted
+items being the additions that we have made since we began configuring the
+virtual environment:
+├── .git
+├── .gitignore
+├── procfile
+├── requirements.txt
+├── readme.md
+├── becoming_a_django_entdev
+│ ├── .vs
+│ ├── becoming_a_django_entdev.sln
+│ ├── db.sqlite3
+│ ├── manage.py
+│ ├── media
+│ ├── obj
+84 Project Configuration
+│ ├── requirements.txt
+│ ├── virtual_env
+│ ├── staticfiles
+│ └── becoming_a_django_entdev
+│ ├── chapter_2
+│ ├── __init__.py
+│ ├── asgi.py
+│ ├── settings.py
+│ ├── urls.py
+│ └── wsgi.py
+Next, let's discuss the different types of databases supported by Django
+
+
+
+Using basic database settings:=
+The five standard Django database types are as follows:
+• SQLite
+• MySQL
+• MariaDB
+• Oracle
+• PostgreSQL
+
+
+SQLite is a Relational Database Management System (RDBMS) based on the C
+language.
+
+Pros:
+
+Cons:
+This is not recommended if security is as
+important to you as it should be
+
+
+MySQL:
+MySQL is a more robust SQL RDBMS.
+MySQL has become
+one of the most popular and most used database types of all time, especially if you
+consider all the other database choices that were built using a fork of MySQL.
+
+DATABASES = {
+'default': {
+'ENGINE': 'django.db.backends.mysql',
+'NAME': 'database_name',
+'USER': 'database_user',
+'PASSWORD': 'database_password',
+'HOST': 'localhost',
+'PORT': '3306',
+}
+}
+
+# requirements.txt
+...
+Mysqlclient
+
+
+
+#
+MariaDB is actually a fork of MySQL; it
+Since MariaDB is essentially just another MySQL installation, the
+ENGINE in the DATABASES configuration of your settings.py file will be the same
+as the example in the previous subsection, titled MySQL. Both will also require that you
+install the same mysqlclient package and include it in your requirements.txt file.
+
+
+Oracle
+
+Oracle Database is a multimodel, object-relational database management system created
+by Oracle. It's primarily used for Online Transaction Processing (OLTP) and data
+warehousing.
+
+DATABASES = {
+'default': {
+'ENGINE': 'django.db.backends.oracle',
+'NAME': 'xe',
+'USER': 'database_user',
+'PASSWORD': 'database_password,
+'HOST': 'database_host',
+'PORT': 'database_port_#',
+}
+}
+
+
+
+# requirements.txt
+...
+cx_Oracle
+
+
+
+
+SQL Server
+
+This is the one database type that is not one of the five standard types supported by
+Django that we will provide an example of. Developed by Microsoft, the Microsoft SQL
+Server database type is also a fork of MySQL and is widely used in Microsoft enterprise
+database systems today. Many systems today rely on this database type, which is often
+used in combination with Azure-hosted apps.
+
+# /becoming_a_django_entdev/settings.py
+...
+DATABASES = {
+'default': {
+'ENGINE': 'sql_server.pyodbc',
+'NAME': 'database_name',
+'USER': 'database_user',
+'PASSWORD': 'database_password',
+'HOST': 'database_host',
+'PORT': '1433',
+'OPTIONS': {
+'driver': 'ODBC Driver 17 for SQL Server',
+},
+}
+}
+
+# requirements.txt
+...
+pyodbc
+django-pyodbc
+django-pyodbc-azure
+
+
+PostgreSQL:
+PostgreSQL has become the go-to database of choice for most Django developers when
+there is no specific reason to use any of the other choices. It is considered an RDBMS,
+
+Its primary features includes ANSI SQL Compliance and
+extensibility, meaning it is a database type built with the idea of people being able to build
+onto it. It will run on every major operating system, such as Windows, Mac, and Linux,
+making it versatile.
+
+
+DATABASES = {
+' 'default': {
+' 'ENGINE': 'django.db.backends.postgre.sql',
+' 'NAME': 'database_name',
+' 'HOST': 'localhost',
+' 'USER': 'database_user',
+' 'PASSWORD': 'database_passwrd',
+' 'PORT': '5432',
+}
+}
+
+
+
+Preparing PostgreSQL for Heroku
+
+
+Local installation
+https://www.postgresql.org/download/.
+
+During installation, the installer will ask whether you want to install any development
+tools, such as database command-line tools or a database management tool. Select
+
+PgAdmin
+
+https://www.pgadmin.org/download/.
+
+# .env
+DATABASE_URL=postgres://postgres:your_password@localhost:5432/
+local_postgresql
+
+
+Remote installation – Heroku dashboard: pg 91-100
+
+
+
+CH-3 
+MODELS:
+
+In this chapter, we will cover the following:
+• Writing model classes to create database tables
+• Using standard field types and third-party field types
+• Configuring field validators
+• Linking tables through field relationships
+• Working with model meta classes and options
+• Using model methods and method decorators
+• Practicing extending models
+• Introducing using the Django shell as a tool to perform queries and add data
+• Creating a model manager to format and control data
+
+
+
+
+Each model in your project represents a table within your database. The fields that
+are created in those models all relate to columns within that table. Django provides a
+technique called Object-Relational Mapping (ORM) to map models to the underlying
+database(s) that are configured in the settings.py file of a project.
+
+
+
+from django.db import models
+class Vehicle(models.Model):
+pass
+//Convectional styles
+
+
+Standard field types
+relationships fields:
+
+*ForeignKey
+*ManytoMAnyField
+*OneToOneField
+
+
+Field arguments
+Field constraints:--verbose_name, blank, and nul
+
+example:max_length
+default=True/False
+choices:--CharField and BooleanField
+
+The choices argument accepts a list of tuples, where each tuple consists
+of the first element being the value of the field and the second element being the humanreadable
+string representation of that value
+
+editable=False  ///This attribute
+would render a field hidden in any form object within a template. This field would not
+be visible or editable by the user in any way.
+
+
+unique=True argument can also be
+useful. This argument states that two rows/records in your table cannot have the same
+value for that particular field
+
+
+
+Django Forms:
+
+blank=True
+required=True
+
+
+Adding a standard field type
+
+YESNO_CHOICES = (
+(True, 'Yes'),
+(False, 'No')
+)
+
+
+
+class VehicleModel(models.Model):
+name = models.CharField(
+verbose_name = 'Model',
+max_length = 75,
+unique = True,
+blank = True,
+null = True,
+
+
+
+class Vehicle(models.Model):
+    vin = models.CharField(
+    verbose_name = 'VIN',
+    max_length = 17,
+    unique = True,
+    blank = True,
+    null = True,
+)
+    sold = models.BooleanField(
+        verbose_name = 'Sold?',
+        choices = YESNO_CHOICES,
+        default = False,
+        blank = True,
+        null = True,
+        )
+
+
+Run the Django makemigration and migrate commands
+python3 manage.py makemigrations
+
+
+//make migrations se models create hoga bas
+
+
+Every time a model is changed, created, or deleted, these Django migration
+commands will need to be executed in order to prevent runtime errors
+
+
+python3 manage.py migrate
+
+
+PgAdmin tool or any other
+
+database management tool that you decided to use, those tables will look similar to as in
+the following screenshot:
+
+
+The djangoa-ddress
+package uses the Google Maps API to suggest addresses related to what the user
+has typed as the user is typing into a single text field
+
+
+
+The djangoimage-cropping 
+tool is also very powerful: it allows a user to upload an image and let
+the user crop the image however they desire.
+
+
+django-money.
+The django-money package provides definitions for all currencies that exist today
+
+The django-phone-field
+
+django-ckeditor package is a tool used for
+adding rich text editors to your pages, allowing users to enter HTML into one of your
+form fields. If you're using django CMS, they also make a version of the django-ckeditor
+package specifically for use with the django CMS package.
+Here is a short list of third-party field types to add to your field type
+
+
+
+AddressField – https://pypi.org/project/django-address/
+• ImageCropField – https://pypi.org/project/django-imagecropping/
+• MoneyField – https://pypi.org/project/django-money/
+• PhoneField – https://pypi.org/project/django-phone-field/
+• RichTextField – https://pypi.org/project/django-ckeditor/
+• (django CMS) RichTextField – https://pypi.org/project/
+djangocms-text-ckeditor/
+
+\\
+
+
+
+now add this setting to your ptrooject:
+
+pip install django-money
+
+INSTALLED_APPS = [
+...,
+'djmoney',
+'becoming_a_django_entdev.chapter_3',
+]
+
+CURRENCIES = ('USD', 'EUR')
+CURRENCY_CHOICES = [
+('USD', 'USD $'),
+('EUR', 'EUR €')
+]
+
+class Vehicle(models.Model):
+...
+price = MoneyField(
+max_digits = 19,
+decimal_places = 2,
+default_currency = 'USD',
+null = True,
+)
+
+
+Model field validators:
+ValidationError:
+MinValueValidator and MaxValueValidator
+
+
+class Vehicle(models.Model):
+...
+price = MoneyField(
+max_digits = 19,
+decimal_places = 2,
+default_currency = 'USD',
+null = True,
+validators = [
+MinMoneyValidator(
+{'EUR': 500, 'USD': 400}
+),
+MaxMoneyValidator(
+{'EUR': 500000, 'USD': 400000}
+),
+])
+
+
+
+Working with model field relationships Django:--  117
+• Many–to–one // defined by using a ForeignKey field
+• Many–to–many
+• One–to–one
+
+
+Field arguments:-
+
+The null argument will have no effect on a ManyToManyField
+and will only apply to the ForeignKey and OneToOneField types
+
+The on_delete choices include the following:
+• models.CASCADE – used to automatically delete any related objects when an
+    object is deleted from that table.
+
+• models.PROTECT – used to prevent deletion of any of the objects.
+
+• models.RESTRICT – used to prevent deletion in certain scenarios.
+
+• models.SET_DEFAULT – used to set the field of related objects to a default value.
+
+• models.SET_NULL – used to set the field of related objects to a null value.
+
+• models.SET() – accepts a callable to write your own function for setting a value.
+
+• models.DO_NOTHING – will take no action; using this option could cause
+    IntegrityError and should be used with caution.
+
+
+
+A Q object will encapsulate a SQL expression in a Python:-
+filter(), all(), or order_by()
+
+
+Field type – ForeignKey:-
+We will be using a ForeignKey field to represent a many-to-one relationship between
+the Vehicle class and the VehicleModel and Engine classes.
+
+class Vehicle(models.Model):
+...
+vehicle_model = models.ForeignKey(
+VehicleModel,
+on_delete = models.CASCADE,
+verbose_name = 'Model',
+related_name = 'model_vehicle',
+blank = True,
+null = True,
+)
+engine = models.ForeignKey(
+Engine,
+on_delete = models.CASCADE,
+verbose_name = 'Engine',
+related_name = 'engine_vehicle',
+blank = True,
+null = True,
+)
+
+
+
+Mutable versus immutable objects:-
+For example,
+mutable objects are represented using a list, dictionary, set, or QuerySet
+Immutable
+objects are defined by using the bool, decimal, float, int, range, string, and tuple data types.
+
+
+Queries will perform better if the object being searched is immutable rather than mutable
+
+
+Using the Meta subclass:-
+Meta options – verbose_name and verbose_name_plural
+class Meta:
+verbose_name = 'Vehicle Model'
+verbose_name_plural = 'Vehicle Models'
+
+Meta option – ordering:-
+It will order in ascending order unless a dash (–)
+character has been placed before the value; if a dash is used, then the results will appear in
+#ordering = ['name', 'secondary_field',]
+ordering = ['-name']
+
+Meta option – indexes:
+
+Meta option – db_table:-
+
+ss Meta:
+db_table = 'chapter_3_practice_engine'
+
+Writing methods:-
+The four most helpful and most used methods are defined here:
+
+. def save(self, *args, **kwargs) – used to override the save action of
+    this model at the database level.
+
+.def delete(self, *args, **kwargs) – this is similar to the save
+    method, except that you can add your own logic before or after an object has been
+    deleted at the database level.    
+
+• def get_absolute_url(self) – used by Django to formulate a canonical
+URL for that object. This is used to redefine the default behavior of how Django
+creates a URL structure for these objects. This is also the URL used within the
+Django admin site to access this object.
+
+• def __str__(self) – used to redefine the default manner that Django will use
+to create a string representation of a single record within that table.    
+
+
+
+Custom model method:-
+
+Decorators
+A decorator is a standard Python design pattern that allows developers to extend the
+functionality of an object without permanently changing the behavior of that object.
+
+Decorator – @property:
+
+
+
+Extending basic model classes
+
+Extending a model is a way to write a set of fields and methods that can be shared
+in many different classes. This is also known as inheritance,
+
+class engine2(models.Model):
+name = models.CharField(...)
+vehicle_model = models.ForeignKey(
+VehicleModel,
+on_delete = models.CASCADE,
+verbose_name = 'Model',
+related_name = 'model_engine2',
+blank = True,
+null = True,
+)
+2. Make sure your
+
+
+class engine2(models.Model):
+class Meta:
+abstract = True
+db_table = 'chapter_3_practice_engine'
+ordering = ['name',]
+verbose_name = 'Practice Engine'
+verbose_name_plural = 'Practice Engines'
+
+abstract = True option as we did in the preceding example. That option allows
+us to use that class as a parent class.
+
+class engine3(engine2):
+other_name = models.CharField(
+verbose_name = 'Other Engine Name',
+max_length = 75,
+blank = True,
+null = True,
+)
+
+
+Dropping database tables:-
+Follow these steps to drop your tables using PgAdmin:
+
+1. In PgAdmin, navigate to Tools | Query Tool.
+2. In the tab that opens, enter the following two commands:
+# In the Query Tool of the PgAdmin App
+DROP SCHEMA public CASCADE;
+CREATE SCHEMA public;
+3. Execute these commands by hitting the Execute/Refresh button or pressing F5 on
+your keyboard.
+4. You will also need to delete all migration files found in any migrations folder, such
+as the /chapter_3/migrations/ and /chapter_3/migrations/__
+pycache__/ folders.
+Note
+Every time tables are dropped, data is lost. The next time the Django migration
+commands are executed, the createsuperuser command should be
+executed and/or data fixtures loaded.
+5. Execute your Django migration commands one more time. The following
+screenshot shows that all of the fields and Meta class options that existed before in
+the engine2 class now exist in the engine3 class even though we did not write
+them for the engine3 class:
+
+
+Extending the Django User model:-
+
+
+This is done by constructing the Seller class using the AbstractUser or AbstractBaseUser class
+as the parent class.
+
+...
+from django.contrib.auth.models import AbstractUser
+...
+class Seller(AbstractUser):
+
+
+# /becoming_a_django_entdev/settings.py
+...
+AUTH_USER_MODEL = 'chapter_3.Seller'
+
+
+Using the Django shell:-
+
+python3 manage.py shell
+
+Examples:-
+>>> myvar = 'my_string'
+>>> print(myvar[0:2] + myvar[3:9])
+mystring
+>>>
+
+
+
+Generating a SECRET_KEY variable:
+
+
+A SECRET_KEY variable in Django is used as a hash to secure things, such as your
+sessions, cookie storage, password tokenization, and all other methods of cryptographic
+signing that act to secure your site.
+
+
+To generate your own SECRET_KEY, follow these steps:
+
+1.
+python3 manage.py shell
+>>> from secret_key_generator import secret_key_generator
+
+2.
+print(secret_key_generator.generate())
+your_randomly_generated_key_printed_here
+
+3.
+Take the key that gets printed onscreen and use it to set or reset your environment
+variables. To reset your variables, just follow the same steps as were discussed in
+Chapter 2, Project Configuration, under the subsection titled Remote variables and it
+will update your value with the new value
+
+
+The preceding shell command also created for us a text file called .secret.txt, found
+in the root of your project, where your manage.py file is located. You can delete the
+.sectret.txt file as it is not needed.
+
+
+Saving data:
+
+Follow these steps to create and save data using the Django shell:
+
+python3 manage.py shell
+
+>>> from becoming_a_django_entdev.chapter_3.models import
+Engine, Seller, Vehicle, VehicleModel
+
+
+>>> vehicle_model = VehicleModel(name = 'Enclave Avenir',make = 1)
+>>> vehicle_model.save()
+
+
+To get around this, we need to use the update_or_create() method instead of the
+save() method.
+
+
+>>> vehicle_model = VehicleModel(name = 'Blazer LT', make = 3)
+>>> engine = Engine(name = '4 Cylinders 4 2.0L DI Turbo DOHC
+122 CID', vehicle_model = vehicle_model)
+>>> engine.save()
+Traceback (most recent call last):
+...
+ValueError: save() prohibited to prevent data loss due to
+unsaved related object 'model'.
+
+
+
+
+Model method – update_or_create():-
+virtual_env) PS > python3 manage.py shell
+>>> vehicle_model, created = VehicleModel.objects.
+update_or_create(name = 'Enclave Avenir', make = 1,
+defaults={'name': 'Enclave Avenir', 'make': 1},)
+
+>>> from djmoney.money import Money
+
+
+
+>>> vehicle_model, model_created = VehicleModel.objects.
+update_or_create(name = 'Blazer LT', make = 3,)
+>>> engine, engine_created = Engine.objects.update_
+or_create(name = '3.9L DI DOHC 6cyl', vehicle_model =
+vehicle_model,)
+>>> vehicle, vehicle_created = Vehicle.objects.update_or_
+create(vin = 'aa123456789012345', sold = True, price =
+Money(10000, 'USD'), make = 3, vehicle_model = vehicle_
+model, engine = engine,)
+
+Performing queries:--
+
+
+Syntax:- model.objects.<query>
+
+1.Model method – all()
+VehicleModel.objects.all()
+
+2. Model method – get() //The get() method is used to target a specific database record.
+>>> vehicle = Vehicle.objects.get(vin ='aa123456789012345')
+>>full_vehicle_name()
+
+>>> print(vehicle.full_vehicle_name())
+Chevrolet Blazer LT - 3.6L DI DOHC 6cyl
+
+3.
+Next, use the other fullname method with the @property decorator to return
+the exact same results:
+>>> print(vehicle.fullname)
+Chevrolet Blazer LT - 3.6L DI DOHC 6cyl
+
+
+Model method – filter():-
+
+
+print(VehicleModel.objects.filter(make = 1))
+
+
+
+Aggregates:=-
+Model method – aggregate():
+
+>>> vehicles = Vehicle.objects.all().aggregate(Avg('price'))
+
+
+
+Where we wrote Vehicle.objects.all().aggregate() in step 2 previously, the
+all() method is redundant. The aggregate() method basically does the same thing
+as the all() method, meaning we could write our statement as follows and produce the
+same results:
+
+
+vehicles = Vehicle.objects.aggregate(Avg('price'))
+
+We can also replace the all() method with any of the standard query methods, such as
+get() or filter(), as depicted in the following example:
+
+>>> vehicles = Vehicle.objects.filter(sold=False).aggregate(Avg('price'))
+>>> print(Money(vehicles['price__avg'], 'USD'))
+$18,419.60
+
+
+Model method – annotate():=
+Annotations are used when we have objects that relate to other objects in a QuerySet and
+we want to generate a summary of every related object in that QuerySet.
+
+
+
+1. Execute the following commands to provide a query of all sellers that exist in a table
+and then generate a count of only the sold vehicles that it finds:
+
+(virtual_env) PS > python3 manage.py shell
+>>> from becoming_a_django_entdev.chapter_3.models import
+Seller, Vehicle
+>>> from django.db.models import Avg, Count
+>>> sellers = Seller.objects.filter(vehicles__sold=True).
+annotate(Count('vehicles'))
+>>> print(sellers[0].vehicles__count)
+
+2.
+
+>>> sellers = Seller.objects.filter(vehicles__
+sold=False).annotate(Count('vehicles'))
+>>> print(sellers[0].vehicles__count)
+
+
+
+Writing model managers:-
+We now know that when we want to apply logic that pertains to a single object within a
+table, we will look into writing a model method. An advanced Django concept can allow us
+to add logic that would relate to the entire table of objects instead. That would be written
+using a model manager instead of a model method
+
+
+# /becoming_a_django_entdev/chapter_3/models.py
+...
+class BuickVehicleManager(models.Manager):
+def get_queryset(self):
+return super().get_queryset().filter(make=1)
+class ChevyVehicleManager(models.Manager):
+def get_queryset(self):
+return super().get_queryset().filter(make=3)
+...
+
+class Vehicle(models.Model):
+# Place Model Fields Here
+# The Default Model Manager
+objects = models.Manager()
+# The Buick Specific Manager
+buick_objects = BuickVehicleManager()
+# The Chevy Specific Manager
+chevy_objects = ChevyVehicleManager()
+# Place Meta Class and Model Methods Here
+
+
+Vehicle.objects.all().count()
+
+
+Vehicle.buick_objects.all().count()
+
+
+CHAPTER -4:---
+URLs, Views, and Templates:
+
+
