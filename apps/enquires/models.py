@@ -8,7 +8,7 @@ from apps.comman.models import TimeStampedUUIDModel
 class Enquiry(TimeStampedUUIDModel):
     name = models.CharField(_("Your Name"), max_length=100)
     phone_number = PhoneNumberField(
-        _("Phone number"), max_length=30, default="+250784123456"
+        _("Phone number"), max_length=30, default="+910123456789"
     )
     email = models.EmailField(_("Email"))
     subject = models.CharField(_("Subject"), max_length=100)
@@ -18,4 +18,4 @@ class Enquiry(TimeStampedUUIDModel):
         return self.email
 
     class Meta:
-        verbose_name_plural = "Enquiries"
+        verbose_name_plural = "Enquires"
